@@ -102,16 +102,46 @@ function appendUserMessage(text) {
 
 let botMessageCounter = 0;
 
+function splitTradeoffs(text) {
+    const match = text.match(/\n*TRADE-OFFS:\s*\n([\s\S]+)$/i);
+    if (!match) return { mainText: text, tradeoffs: null };
+    const mainText = text.slice(0, match.index).trim();
+    const bullets = match[1]
+        .split('\n')
+        .map(line => line.replace(/^\s*[-*•]\s*/, '').trim())
+        .filter(line => line.length > 0);
+    return { mainText, tradeoffs: bullets };
+}
+
 function appendBotMessage(text, confidenceMetrics, retrievedDocuments) {
     const bubbleId = `bot-msg-${++botMessageCounter}`;
     const bubble = document.createElement('div');
     bubble.className = 'msg msg-bot';
     bubble.id = bubbleId;
 
+    const { mainText, tradeoffs } = splitTradeoffs(text);
+
     const body = document.createElement('div');
     body.className = 'msg-text';
-    body.innerHTML = renderTextWithCitationChips(text, bubbleId, (retrievedDocuments || []).length);
+    body.innerHTML = renderTextWithCitationChips(mainText, bubbleId, (retrievedDocuments || []).length);
     bubble.appendChild(body);
+
+    if (tradeoffs && tradeoffs.length > 0) {
+        const block = document.createElement('div');
+        block.className = 'tradeoffs-block';
+        const heading = document.createElement('div');
+        heading.className = 'tradeoffs-heading';
+        heading.textContent = 'Trade-offs';
+        block.appendChild(heading);
+        const ul = document.createElement('ul');
+        tradeoffs.forEach(t => {
+            const li = document.createElement('li');
+            li.innerHTML = renderTextWithCitationChips(t, bubbleId, (retrievedDocuments || []).length);
+            ul.appendChild(li);
+        });
+        block.appendChild(ul);
+        bubble.appendChild(block);
+    }
 
     const meta = document.createElement('div');
     meta.className = 'msg-meta';

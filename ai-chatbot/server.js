@@ -92,13 +92,21 @@ RULES:
 5. If a key fact is genuinely missing (e.g. user asks about visa rules and the docs are tourism guides only), do NOT just refuse. Use this pattern: "The uploaded docs don't have specific info on [missing topic], but here's what's relevant from them: ..." — then give them everything related you CAN ground with citations. Be a planner, not a gatekeeper.
 6. Even if the question is far from the uploaded docs, still try to bridge: open with "The docs don't directly cover [X], but they do have related info on [Y] which might help: ..." and pull anything tangentially useful. Only say "the documents don't cover this at all" if there is genuinely zero overlap (e.g. user asks about Tokyo when only European city guides are uploaded).
 7. Keep the answer focused and useful. Prefer a structured plan over a paragraph of disclaimers.
+8. If the answer involves trade-offs (choosing between options, balancing constraints like budget vs. preferences, picking one city/plan/route over another, recommending a compromise for a group), end your answer with a section in EXACTLY this format:
+
+TRADE-OFFS:
+- <one full sentence explaining a strength or a compromise of the recommendation>
+- <another full sentence>
+- <as many bullets as needed; each bullet covers one dimension the user cared about>
+
+The bullets must reflect the dimensions the user actually asked about (e.g., if they asked about nightlife/budget/dietary, the bullets cover those exact dimensions). Skip this section entirely for factual lookups, greetings, or answers with no real trade-off.
 
 SOURCES:
 ${context}
 
 QUESTION: ${userInput}
 
-ANSWER (organized, with [Source N] citations on each fact):`
+ANSWER (organized, with [Source N] citations on each fact, and a TRADE-OFFS section at the end if applicable):`
           : `You are a travel assistant. The user asked: "${userInput}"
 
 No relevant content was found in the uploaded documents for this question. Reply honestly: tell the user no uploaded document covers their question, and suggest they upload a document on this topic. Do NOT answer from general knowledge.`;
