@@ -155,6 +155,16 @@ function appendBotMessage(text, confidenceMetrics, retrievedDocuments) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+function setupScratchpadNotes() {
+    const notes = document.getElementById('scratchpad-notes');
+    if (!notes) return;
+    const notesKey = `scratchpad-notes-${participantID}`;
+    notes.value = localStorage.getItem(notesKey) || '';
+    notes.addEventListener('input', () => {
+        localStorage.setItem(notesKey, notes.value);
+    });
+}
+
 function renderTextWithCitationChips(text, bubbleId, sourceCount) {
     const escaped = escapeHtml(text);
     return escaped.replace(/\[Source\s+(\d+)\]/gi, (match, n) => {
@@ -214,8 +224,33 @@ async function loadConversationHistory() {
     }
 }
 
-// Load history when chat loads
-window.onload = loadConversationHistory;
+function setupScratchpadToggle() {
+    const scratchpad = document.getElementById('scratchpad');
+    const toggle = document.getElementById('scratchpad-toggle');
+    if (!scratchpad || !toggle) return;
+
+    const collapseKey = `scratchpad-collapsed-${participantID}`;
+    const wasCollapsed = localStorage.getItem(collapseKey) === '1';
+    if (wasCollapsed) {
+        scratchpad.classList.add('collapsed');
+        toggle.textContent = '+';
+        toggle.title = 'Expand';
+    }
+
+    toggle.addEventListener('click', () => {
+        const nowCollapsed = scratchpad.classList.toggle('collapsed');
+        toggle.textContent = nowCollapsed ? '+' : '−';
+        toggle.title = nowCollapsed ? 'Expand' : 'Collapse';
+        localStorage.setItem(collapseKey, nowCollapsed ? '1' : '0');
+    });
+}
+
+// Load history and scratchpad when chat loads
+window.onload = () => {
+    loadConversationHistory();
+    setupScratchpadNotes();
+    setupScratchpadToggle();
+};
 
 const sendButton = document.getElementById("send-btn");
 if (sendButton) {
