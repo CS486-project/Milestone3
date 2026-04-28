@@ -357,7 +357,8 @@ if (uploadBtn) {
   
     const formData = new FormData();
     formData.append("document", file);
-  
+    formData.append("participantID", participantID);
+
     const response = await fetch("/upload-document", {
         method: "POST",
         body: formData
@@ -377,30 +378,54 @@ async function loadDocuments() {
         return;
     }
     try {
-        const response = await fetch("/documents");
+        const response = await fetch(`/documents?participantID=${encodeURIComponent(participantID)}`);
         const docs = await response.json();
         console.log("Docs:", docs);
-    
-        const documentsList = document.getElementById("documents-list");
-        documentsList.innerHTML = "";
 
-        const placeholder = document.getElementById("uploaded-docs-placeholder");
+        documentsList.innerHTML = "";
 
         if (docs.length === 0) {
             placeholder.style.display = '';
             return;
         }
         placeholder.style.display = 'none';
-    
+
         docs.forEach((doc) => {
             const li = document.createElement("li");
-            li.textContent = `${doc.filename} - ${doc.processingStatus}`;
+            li.className = 'doc-item';
+            const label = document.createElement('span');
+            label.textContent = `${doc.filename} - ${doc.processingStatus}`;
+            const delBtn = document.createElement('button');
+            delBtn.className = 'doc-delete-btn';
+            delBtn.textContent = '×';
+            delBtn.title = 'Delete document';
+            delBtn.addEventListener('click', () => deleteDocument(doc._id, doc.filename));
+            li.appendChild(label);
+            li.appendChild(delBtn);
             documentsList.appendChild(li);
         });
     } catch (e) {
         console.error('loadDocuments:', e);
     }
 }
+
+async function deleteDocument(id, filename) {
+    if (!confirm(`Delete "${filename}"?`)) return;
+    try {
+        const response = await fetch(`/documents/${id}?participantID=${encodeURIComponent(participantID)}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            alert(`Could not delete: ${err.error || response.status}`);
+            return;
+        }
+        await loadDocuments();
+    } catch (e) {
+        console.error('deleteDocument:', e);
+    }
+}
+
 loadDocuments();
 
 // redirection to the qualtrics questionnaire

@@ -7,6 +7,7 @@ const ChunkSchema = new mongoose.Schema({
 }, { _id: false });
 
 const DocumentSchema = new mongoose.Schema({
+    participantID: { type: String, required: true, index: true },
     filename: { type: String, required: true },
     text: { type: String, required: true },
     chunks: { type: [ChunkSchema], default: [] },
