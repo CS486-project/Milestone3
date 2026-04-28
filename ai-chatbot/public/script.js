@@ -274,6 +274,7 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     const bubbleId = chip.getAttribute('data-bubble');
     const srcIdx = chip.getAttribute('data-src');
+    logEvent('click', `Citation Chip [${srcIdx}]`);
     const details = document.getElementById(`${bubbleId}-sources`);
     const li = document.getElementById(`${bubbleId}-src-${srcIdx}`);
     if (details && !details.open) details.open = true;
@@ -334,6 +335,7 @@ function setupScratchpadToggle() {
         toggle.textContent = nowCollapsed ? '+' : '−';
         toggle.title = nowCollapsed ? 'Expand' : 'Collapse';
         localStorage.setItem(collapseKey, nowCollapsed ? '1' : '0');
+        logEvent('click', nowCollapsed ? 'Scratchpad Collapse' : 'Scratchpad Expand');
     });
 }
 
@@ -407,6 +409,7 @@ const uploadBtn = document.getElementById("upload-btn");
 if (uploadBtn) {
     uploadBtn.addEventListener("click", async (event) => {
     event.preventDefault();
+    logEvent('click', 'Upload Button');
 
     const fileInput = document.getElementById("file-input");
     const file = fileInput.files[0];
@@ -472,6 +475,7 @@ async function loadDocuments() {
 }
 
 async function deleteDocument(id, filename) {
+    logEvent('click', 'Delete Document');
     if (!confirm(`Delete "${filename}"?`)) return;
     try {
         const response = await fetch(`/documents/${id}?participantID=${encodeURIComponent(participantID)}`, {
