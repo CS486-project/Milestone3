@@ -7,15 +7,22 @@ Enhanced prototype with the new
 
 ## Conversation Window + Scratchpad
 
+Participant ID is handled and is collected on homepage. The conversation history associated with a specific Participant ID is populated in messages window and all the interactions and events are logged with Participant ID that was passed on the homepage.
+
+
 <img width="1330" height="768" alt="Screenshot 2026-04-28 at 10 03 34 AM" src="https://github.com/user-attachments/assets/116295e7-3353-41d0-81b0-e7d2bf61bdd9" />
 
 
 ## Tradeoff Summary
 
+OpenAI API generates messages and are properly displayed for summarisation
+
 <img width="928" height="420" alt="Screenshot 2026-04-28 at 10 13 41 AM" src="https://github.com/user-attachments/assets/9a102f2b-dd7a-4553-838b-812890e66131" />
 
 
 ## Citation Chip
+
+Correct context links are reffered and stored in MongoDb
 
 <img width="472" height="717" alt="Screenshot 2026-04-28 at 10 14 16 AM" src="https://github.com/user-attachments/assets/e1a606c6-5c74-445e-a923-d150ec7fc970" />
 
