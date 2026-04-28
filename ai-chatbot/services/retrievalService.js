@@ -38,6 +38,7 @@ class TFIDFRetriever {
             this.chunkMap.push({
               documentId: doc._id,
               documentName: doc.filename,
+              participantID: doc.participantID,
               chunkIndex: chunk.chunkIndex,
               chunkText: chunk.text
             });
@@ -61,7 +62,7 @@ class TFIDFRetriever {
    * @param {number} minScore - Minimum TF-IDF score threshold (default: 0)
    * @returns {Array} Top-k matching chunks with scores
    */
-  retrieve(query, topK = 3, minScore = 0) {
+  retrieve(query, topK = 3, minScore = 0, participantID = null) {
     if (!this.isIndexed || !this.tfidf) {
       console.warn('TF-IDF index not built. Returning empty results.');
       return [];
@@ -71,9 +72,9 @@ class TFIDFRetriever {
 
     // Calculate TF-IDF similarity for query
     this.tfidf.tfidfs(query, (i, measure) => {
-      if (measure >= minScore) {
-        scores.push({ index: i, score: measure });
-      }
+      if (measure < minScore) return;
+      if (participantID && this.chunkMap[i].participantID !== participantID) return;
+      scores.push({ index: i, score: measure });
     });
 
     // Sort by score descending
@@ -96,17 +97,19 @@ class SemanticRetriever {
    * @param {number} minScore - Minimum similarity score threshold (default: 0.3)
    * @returns {Array} Top-k matching chunks with scores
    */
-  async retrieve(query, topK = 3, minScore = 0.3) {
+  async retrieve(query, topK = 3, minScore = 0.3, participantID = null) {
     try {
       // Generate query embedding
       console.log('Generating query embedding...');
       const queryEmbedding = await embeddingService.generateQueryEmbedding(query);
 
-      // Fetch all documents with embeddings
-      const documents = await Document.find({
+      // Fetch all documents with embeddings, scoped to this participant
+      const filter = {
         processingStatus: 'completed',
         'chunks.embedding': { $exists: true, $ne: [] }
-      });
+      };
+      if (participantID) filter.participantID = participantID;
+      const documents = await Document.find(filter);
 
       if (documents.length === 0) {
         console.log('No documents with embeddings found');
@@ -180,14 +183,15 @@ class RetrievalService {
     const {
       method = 'semantic',
       topK = 3,
-      minScore = 0.3
+      minScore = 0.3,
+      participantID = null
     } = options;
 
     try {
       if (method === 'tfidf') {
-        return this.tfidfRetriever.retrieve(query, topK, minScore);
+        return this.tfidfRetriever.retrieve(query, topK, minScore, participantID);
       } else if (method === 'semantic') {
-        return await this.semanticRetriever.retrieve(query, topK, minScore);
+        return await this.semanticRetriever.retrieve(query, topK, minScore, participantID);
       } else {
         throw new Error(`Unknown retrieval method: ${method}`);
       }

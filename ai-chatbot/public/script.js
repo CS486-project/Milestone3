@@ -121,6 +121,16 @@ function appendBotMessage(text, confidenceMetrics, retrievedDocuments) {
 
     const { mainText, tradeoffs } = splitTradeoffs(text);
 
+    bubble.draggable = true;
+    bubble.addEventListener('dragstart', (e) => {
+        const dragText = tradeoffs && tradeoffs.length > 0
+            ? mainText + '\n\nTrade-offs:\n' + tradeoffs.map(t => '- ' + t).join('\n')
+            : mainText;
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('application/x-bot-message', dragText);
+        e.dataTransfer.setData('text/plain', dragText);
+    });
+
     const body = document.createElement('div');
     body.className = 'msg-text';
     body.innerHTML = renderTextWithCitationChips(mainText, bubbleId, (retrievedDocuments || []).length);
@@ -185,14 +195,66 @@ function appendBotMessage(text, confidenceMetrics, retrievedDocuments) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function setupScratchpadNotes() {
-    const notes = document.getElementById('scratchpad-notes');
-    if (!notes) return;
-    const notesKey = `scratchpad-notes-${participantID}`;
-    notes.value = localStorage.getItem(notesKey) || '';
-    notes.addEventListener('input', () => {
-        localStorage.setItem(notesKey, notes.value);
+let quillEditor = null;
+
+function setupScratchpadEditor() {
+    const container = document.getElementById('scratchpad-editor');
+    if (!container || typeof Quill === 'undefined') return;
+
+    const storageKey = `scratchpad-quill-${participantID}`;
+
+    quillEditor = new Quill('#scratchpad-editor', {
+        theme: 'snow',
+        placeholder: 'Type notes, or drag a bot reply in...',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ header: [1, 2, false] }]
+            ]
+        }
     });
+
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+        try {
+            quillEditor.setContents(JSON.parse(saved));
+        } catch (err) {
+            console.warn('Could not restore scratchpad contents:', err);
+        }
+    }
+
+    quillEditor.on('text-change', () => {
+        localStorage.setItem(storageKey, JSON.stringify(quillEditor.getContents()));
+    });
+
+    const editorRoot = quillEditor.root;
+
+    editorRoot.addEventListener('dragover', (e) => {
+        const types = Array.from(e.dataTransfer.types || []);
+        if (!types.includes('application/x-bot-message')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        editorRoot.classList.add('drag-over');
+    }, true);
+
+    editorRoot.addEventListener('dragleave', (e) => {
+        if (e.target === editorRoot) {
+            editorRoot.classList.remove('drag-over');
+        }
+    }, true);
+
+    editorRoot.addEventListener('drop', (e) => {
+        const types = Array.from(e.dataTransfer.types || []);
+        if (!types.includes('application/x-bot-message')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        editorRoot.classList.remove('drag-over');
+        const text = e.dataTransfer.getData('application/x-bot-message');
+        if (!text) return;
+        const length = quillEditor.getLength();
+        quillEditor.insertText(length - 1, '\n' + text + '\n', { italic: true });
+    }, true);
 }
 
 function renderTextWithCitationChips(text, bubbleId, sourceCount) {
@@ -278,7 +340,7 @@ function setupScratchpadToggle() {
 // Load history and scratchpad when chat loads
 window.onload = () => {
     loadConversationHistory();
-    setupScratchpadNotes();
+    setupScratchpadEditor();
     setupScratchpadToggle();
 };
 

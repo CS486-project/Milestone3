@@ -98,25 +98,46 @@ body#home #participant-section {
     width: fit-content;
 }
 
-#scratchpad-notes {
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 240px;
-    padding: 10px 12px;
-    border: 1px solid #e0e0e0;
+#scratchpad-hint {
+    margin: 0 0 8px;
+    font-size: 0.8em;
+    color: #7e7d7d;
+    font-style: italic;
+}
+
+#scratchpad-editor {
+    background-color: #ffffff;
     border-radius: 8px;
+}
+
+#scratchpad-editor .ql-toolbar.ql-snow {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px 8px 0 0;
     background-color: #f8f8f8;
+}
+
+#scratchpad-editor .ql-container.ql-snow {
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 8px 8px;
+    min-height: 240px;
     font-family: 'Roboto', sans-serif;
     font-size: 0.9em;
     color: #333;
-    line-height: 1.4;
-    resize: vertical;
+    background-color: #ffffff;
 }
 
-#scratchpad-notes:focus {
-    outline: none;
-    border-color: #0f7bd4;
-    background-color: #ffffff;
+#scratchpad-editor .ql-editor.drag-over {
+    background-color: #e7f1fb;
+    outline: 2px dashed #0f7bd4;
+    outline-offset: -4px;
+}
+
+.msg-bot {
+    cursor: grab;
+}
+
+.msg-bot:active {
+    cursor: grabbing;
 }
 
 #upload-form {
@@ -147,6 +168,42 @@ body#home #participant-section {
 #uploaded-docs {
     padding: 16px;
     color: #7e7d7d;
+}
+
+#documents-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.9em;
+    color: #333;
+}
+
+.doc-delete-btn {
+    background: transparent;
+    border: none;
+    color: #a01818;
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.doc-delete-btn:hover {
+    background-color: #fde2e2;
 }
 
 #uploaded-docs-placeholder {

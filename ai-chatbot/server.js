@@ -68,7 +68,8 @@ req.body;
         const topK = await retrievalService.retrieve(userInput, {
           method: retrievalMethod,
           topK: 5,
-          minScore: retrievalMethod === 'tfidf' ? 0 : 0.35
+          minScore: retrievalMethod === 'tfidf' ? 0 : 0.35,
+          participantID: participantID
         });
 
         console.log(`Retrieved ${topK.length} documents`);
@@ -222,6 +223,10 @@ app.post("/upload-document", upload.single("document") , async (req, res) => {
   if (!req.file ) {
     return res.status(400).json({ error: "No file uploaded" });
   }
+  const { participantID } = req.body;
+  if (!participantID) {
+    return res.status(400).json({ error: "Participant ID is required" });
+  }
   const processed = await documentProcessor.processDocument(req.file);
 
   const chunkObjects = processed.chunks.map((chunk, index) => ({
@@ -232,6 +237,7 @@ app.post("/upload-document", upload.single("document") , async (req, res) => {
   const chunksWithEmbeddings = await embeddingService.generateEmbeddings(chunkObjects);
 
   await Document.create({
+    participantID: participantID,
     filename: req.file.originalname,
     text: processed.fullText,
     chunks: chunksWithEmbeddings,
@@ -248,10 +254,28 @@ app.post("/upload-document", upload.single("document") , async (req, res) => {
 });
 
 app.get("/documents", async (req, res) => {
-  const docs = await Document.find({})
+  const { participantID } = req.query;
+  if (!participantID) {
+    return res.status(400).json({ error: "Participant ID is required" });
+  }
+  const docs = await Document.find({ participantID })
   .select("_id filename processingStatus processedAt")
   .sort({ processedAt: -1 });
   res.json(docs);
+});
+
+app.delete("/documents/:id", async (req, res) => {
+  const { participantID } = req.query;
+  if (!participantID) {
+    return res.status(400).json({ error: "Participant ID is required" });
+  }
+  const doc = await Document.findOne({ _id: req.params.id, participantID });
+  if (!doc) {
+    return res.status(404).json({ error: "Document not found" });
+  }
+  await Document.deleteOne({ _id: doc._id });
+  await retrievalService.rebuildIndex();
+  res.json({ status: "ok", deletedId: doc._id });
 });
 
 // const PORT = process.env.PORT || 30003w5
